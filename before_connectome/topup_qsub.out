@@ -1,0 +1,14 @@
+SSD = 11024.2	n = 9883648	Reg = 0	Cost = 11024.2
+SSD = 1.24014e+06	n = 9813210	Reg = 0	Cost = 1.24014e+06
+SSD = 235388	n = 9839414	Reg = 0	Cost = 235388
+SSD = 10032.8	n = 9829357	Reg = 0	Cost = 10032.8
+SSD = 13423.5	n = 9839134	Reg = 0	Cost = 13423.5
+SSD = 9269.53	n = 9826354	Reg = 0	Cost = 9269.53
+SSD = 17534.1	n = 9835900	Reg = 0	Cost = 17534.1
+SSD = 8759.86	n = 9825723	Reg = 0	Cost = 8759.86
+SSD = 10268	n = 9833779	Reg = 0	Cost = 10268
+SSD = 8379.99	n = 9825864	Reg = 0	Cost = 8379.99
+SSD = 9109.41	n = 9832778	Reg = 0	Cost = 9109.41
+SSD = 8067.38	n = 9825309	Reg = 0	Cost = 8067.38
+Error occured while writing output from topup
+Exception thrown with message: Error: short write, output file will be truncated

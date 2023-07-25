@@ -26,7 +26,7 @@ sbatch_folder_path = BD+"/ADRC_mrtrix_dwifsl/"+job_descrp + '_sbatch/'
 if not os.path.exists(sbatch_folder_path):
     os.system(f"mkdir -p {sbatch_folder_path}" )
     #os.makedirs(sbatch_folder_path)
-GD = '###/rja20_dev/gunnies/'
+GD = '/mnt/clustertmp/common/rja20_dev/gunnies/'
 #GD = '/mnt/munin2/Badea/Lab/mouse/mrtrix_pipeline/'
 
 
@@ -47,13 +47,13 @@ if os.path.isdir(conn_path):
     list_of_subjs = set(list_of_subjs) - set(done_subj)
 '''   
 
-trac_path = '###/ADRC_mrtrix_dwifsl/perm_files/'
+trac_path = '/mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix_dwifsl/perm_files/'
 #trac_path = '/Volumes/Data/Badea/Lab/mouse/ADRC_mrtrix_dwifsl/perm_files/'
 if os.path.isdir(trac_path):
     done_subj = os.listdir(trac_path)
     done_subj = [i for i in done_subj if 'smallerTracks2mill' in i]
     done_subj = [i.partition('_smallerTracks2mill')[0] for i in done_subj]
-    list_of_subjs = set(list_of_subjs) - set(done_subj)    
+    list_of_subjs = set(list_of_subjs) - set(done_subj)   
         
 #list_fmri_folders.remove(".DS_Store")
 
@@ -63,7 +63,8 @@ for subj in list_of_subjs:
     #print(subj)
     #fmri_file = list_fmir_folders_path +subj + "/ses-1/func/" + subj +"_ses-1_bold.nii.gz" 
     #nib.load(fmri_file)
-    python_command = "python ###/ADRC_mrtrix_dwifsl/partial_pipeline.py "+subj
+    python_command = "python /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix_dwifsl/partial_pipeline.py "+subj
+    #python_command = "python /mnt/munin2/Badea/Lab/mouse/mrtrix_pipeline/main_trc_conn.py "+subj
     job_name = job_descrp + "_"+ subj
     command = GD + "submit_sge_cluster_job.bash " + sbatch_folder_path + " "+ job_name + " 0 0 '"+ python_command+"'"   
     os.system(command)
@@ -77,7 +78,8 @@ for subj in list_of_subjs:
 subj = "ADRC0001"
 
  #print(subj)
-python_command = "python ###/ADRC_mrtrix_dwifsl/partial_pipeline.py "+subj
+python_command = "python /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix_dwifsl/partial_pipeline.py "+subj
+ #python_command = "python /mnt/munin2/Badea/Lab/mouse/mrtrix_pipeline/main_trc_conn.py "+subj
 job_name = job_descrp + "_"+ subj
 command = GD + "submit_sge_cluster_job.bash " + sbatch_folder_path + " "+ job_name + " 0 0 '"+ python_command+"'"   
 os.system(command)

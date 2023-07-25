@@ -33,12 +33,13 @@ subj = sys.argv[1] #reads subj number with s... from input of python file
 index_gz = ".gz" 
 #index_gz = "" 
 
+#root= '/Volumes/Data/Badea/Lab/mouse/ADRC_mrtrix_dwifsl/'
+root= '/mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix_dwifsl/'
 
-root= '###/ADRC_mrtrix_dwifsl/'
 
 
-
-orig_subj_path = '###/ADRC-20230511/'+ subj + "/visit1/"
+#orig_subj_path = '/Volumes/Data/Badea/Lab/ADRC-20230511/'+ subj + "/visit1/"
+orig_subj_path = '/mnt/munin2/Badea/Lab/ADRC-20230511/'+ subj + "/visit1/"
 
 
 
@@ -61,7 +62,7 @@ if not os.path.isdir(path_perm) : os.mkdir(path_perm)
 #new_bval.shape
 #np.savetxt(bval_path, new_bval, newline=" ", fmt='%f') # saving the RAS bvec
 
-#bval_path = '###/Downloads/N59066_bval.txt'
+#bval_path = '/Users/ali/Downloads/N59066_bval.txt'
 
 
 
@@ -159,11 +160,6 @@ if not os.path.isdir(subj_path) : os.mkdir(subj_path)
 #if not os.path.isfile(orig_subj_path + "HCP_DTI.bxh") : print('where is original bvec, bval text file?')
 
 
-
-
-
-
-
 T1_orig =  orig_subj_path+'T1.nii.gz'
 if not os.path.isfile(T1_orig) : print('where is original DWI?')
 
@@ -176,16 +172,37 @@ if not os.path.isfile(T1_orig) : print('where is original DWI?')
 #if not os.path.isfile(b0_orig) : print('where is original b0?')
 
 
+##############resampling
+
+DTI_forward_nii_gz_res = subj_path+subj+'_DTI_forward_res.nii.gz'
+os.system( 'mrgrid '+ DTI_forward_nii_gz + ' regrid -voxel 1.5 '+ DTI_forward_nii_gz_res +' -force')
+os.system( 'mrgrid '+ DTI_forward_nii_gz_res + ' pad -all_axes -axis 0 0,1 -axis 1 0,1 '+ DTI_forward_nii_gz +' -force')
+
+DTI_reverse_phase_nii_gz_res = subj_path+subj+'_DTI_backward_res.nii.gz'
+os.system( 'mrgrid '+ DTI_reverse_phase_nii_gz + ' regrid -voxel 1.5 '+ DTI_reverse_phase_nii_gz_res +' -force')
+os.system( 'mrgrid '+ DTI_reverse_phase_nii_gz_res + ' pad -all_axes -axis 0 0,1 -axis 1 0,1 '+ DTI_reverse_phase_nii_gz +' -force')
+#DTI_reverse_phase_nii_gz= DTI_reverse_phase_nii_gz_res
 
 
 
-
+command =  'mrgrid '+T1_orig+' regrid -template ' + DTI_forward_nii_gz  + ' -scale 1,1,1 '    + T1_orig + ' -force'
+os.system('echo ' + command) 
+os.system(command)
 
 
 
 
 
 T1 =T1_orig
+
+
+
+#changng to mif format
+T1_mif = subj_path+subj+'_T1.mif'+index_gz
+os.system('mrconvert ' +T1+ ' '+T1_mif + ' -force' )
+
+
+
 
 #os.system('/Applications/Convert3DGUI.app/Contents/bin/c3d ' + T1_orig +" -orient RAS -o "+T1) # RAS rotation T1
 
@@ -206,7 +223,7 @@ T1 =T1_orig
 
 #volS_RAS_path = subj_path + subj + '_' 
 #nii_gz_path =  path_perm  + subj +'_RAS_coreg.nii.gz'
-#os.system(f'###/Downloads/ANTsR/install/bin/ImageMath 4 {nii_gz_path} TimeSeriesAssemble 1 0 {volS_RAS_path}*RAS.nii.gz') # concatenate volumes of fmri
+#os.system(f'/Users/ali/Downloads/ANTsR/install/bin/ImageMath 4 {nii_gz_path} TimeSeriesAssemble 1 0 {volS_RAS_path}*RAS.nii.gz') # concatenate volumes of fmri
 #nii_gz_path = nii_gz_path_orig
 
 #bvec_path = path_perm+subj+'_bvecs_RAS.txt' 
@@ -219,7 +236,7 @@ new_bvec[1, 1:] = -new_bvec[1, 1:] # flip y sign
 #new_bvec=new_bvec.transpose()
 np.savetxt(bvec_path_orig, new_bvec, fmt='%f') # saving the RAS bvec
 #bvec_path = bvec_path_orig
-#bvec_path  = '###/Downloads/N59066_bvecs.txt'
+#bvec_path  = '/Users/ali/Downloads/N59066_bvecs.txt'
 
 
 ###
@@ -229,14 +246,12 @@ bval_path = bval_path_orig
 
 
 
-#changng to mif format
-T1_mif = subj_path+subj+'_T1.mif'+index_gz
-os.system('mrconvert ' +T1+ ' '+T1_mif + ' -force' )
+
 
 out_mif = subj_path + subj+'_subjspace_dwi.mif'+index_gz
 os.system('mrconvert '+DTI_forward_nii_gz+ ' ' +out_mif+' -fslgrad '+bvec_path_orig+ ' '+ bval_path_orig+' -bvalue_scaling false -force') #turn off the scaling otherwise bvals becomes 0 4000 1000 instead of 2000 
     
-#os.system('mrinfo '+out_mif+ ' -export_grad_fsl ' + '###/Desktop/Feb23/mrtrix_pipeline/temp/N59141/test.bvecs ###/Desktop/Feb23/mrtrix_pipeline/temp/N59141/test.bvals -force'  ) #print the 4th dimension
+#os.system('mrinfo '+out_mif+ ' -export_grad_fsl ' + '/Users/ali/Desktop/Feb23/mrtrix_pipeline/temp/N59141/test.bvecs /Users/ali/Desktop/Feb23/mrtrix_pipeline/temp/N59141/test.bvals -force'  ) #print the 4th dimension
 
 
 
@@ -268,8 +283,8 @@ os.system('mrcalc '+out_mif + ' ' + output_denoise+ ' -subtract '+ output_residu
 
 
 #distortion correction
-nii_gz_path_PA = orig_subj_path +'HCP_DTI_reverse_phase.nii.gz'
-
+#nii_gz_path_PA = orig_subj_path +'HCP_DTI_reverse_phase.nii.gz'
+nii_gz_path_PA = DTI_reverse_phase_nii_gz
 
 # read bvec bval of reverse phase:
 
@@ -366,33 +381,36 @@ den_preproc_mif = subj_path+subj+'_den_preproc.mif'
 
 
 ############################# implementing dwifslpreproc
-#dwifslpreproc: Generated scratch directory: ###/ADRC_mrtrix/temp/ADRC0001/dwifslpreproc-tmp-CJQZIR/
+#dwifslpreproc: Generated scratch directory: /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix/temp/ADRC0001/dwifslpreproc-tmp-CJQZIR/
 scratch_path = subj_path + 'dwifsl_scratch/'
 if not os.path.isdir(scratch_path) : os.mkdir(scratch_path)
 
 
-#Command:  mrconvert ###/ADRC_mrtrix/temp/ADRC0001/ADRC0001_den.mif ###/ADRC_mrtrix/temp/ADRC0001/dwifslpreproc-tmp-CJQZIR/dwi.mif -fslgrad ###/ADRC_mrtrix/perm_files/ADRC0001_bvec.txt ###/ADRC_mrtrix/perm_files/ADRC0001_bvals.txt -json_export ###/ADRC_mrtrix/temp/ADRC0001/dwifslpreproc-tmp-CJQZIR/dwi.json
-#          mrconvert ###/Desktop/Jun23/adrc_dwifsl/temp/ADRC0001/ADRC0001_den.mif ###/Desktop/Jun23/adrc_dwifsl/temp/ADRC0001/dwifsl_scratch/dwi.mif -fslgrad ###/Desktop/Jun23/adrc_dwifsl/perm_files/ADRC0001_bvec.txt ###/Desktop/Jun23/adrc_dwifsl/perm_files/ADRC0001_bvals.txt -json_export ###/Desktop/Jun23/adrc_dwifsl/temp/ADRC0001/dwifsl_scratch/dwi.json -force
+#Command:  mrconvert /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix/temp/ADRC0001/ADRC0001_den.mif /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix/temp/ADRC0001/dwifslpreproc-tmp-CJQZIR/dwi.mif -fslgrad /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix/perm_files/ADRC0001_bvec.txt /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix/perm_files/ADRC0001_bvals.txt -json_export /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix/temp/ADRC0001/dwifslpreproc-tmp-CJQZIR/dwi.json
+#          mrconvert /Users/ali/Desktop/Jun23/adrc_dwifsl/temp/ADRC0001/ADRC0001_den.mif /Users/ali/Desktop/Jun23/adrc_dwifsl/temp/ADRC0001/dwifsl_scratch/dwi.mif -fslgrad /Users/ali/Desktop/Jun23/adrc_dwifsl/perm_files/ADRC0001_bvec.txt /Users/ali/Desktop/Jun23/adrc_dwifsl/perm_files/ADRC0001_bvals.txt -json_export /Users/ali/Desktop/Jun23/adrc_dwifsl/temp/ADRC0001/dwifsl_scratch/dwi.json -force
 dwi_mif = scratch_path + 'dwi.mif'
 dwi_json = scratch_path + 'dwi.json'
 command = 'mrconvert ' + output_denoise+ " " + dwi_mif+' -fslgrad ' + bvec_path + ' '+ bval_path + ' -json_export '+ dwi_json  + ' -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 
-#Command:  mrconvert ###/ADRC_mrtrix/temp/ADRC0001/ADRC0001b0_pair.mif ###/ADRC_mrtrix/temp/ADRC0001/dwifslpreproc-tmp-CJQZIR/se_epi.mif
+#Command:  mrconvert /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix/temp/ADRC0001/ADRC0001b0_pair.mif /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix/temp/ADRC0001/dwifslpreproc-tmp-CJQZIR/se_epi.mif
 se_epi_mif  =  scratch_path + 'se_epi.mif'
 command = 'mrconvert ' + b0_pair_mif+ " " + se_epi_mif+' -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
-#dwifslpreproc: Changing to scratch directory (###/ADRC_mrtrix/temp/ADRC0001/dwifslpreproc-tmp-CJQZIR/)
+#dwifslpreproc: Changing to scratch directory (/mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix/temp/ADRC0001/dwifslpreproc-tmp-CJQZIR/)
 #dwifslpreproc: Total readout time not provided at command-line; assuming sane default of 0.1
 
 #Command:  mrinfo dwi.mif -export_grad_mrtrix grad.b
 grad_b  = scratch_path+'grad.b'
 command = 'mrinfo ' + dwi_mif+ ' -export_grad_mrtrix '+grad_b  +' -force'
 print(command)
+os.system('echo '+command)
 os.system( command )
 
 #dwifslpreproc: 1 spatial axis of DWIs has non-even size; this will be automatically padded for compatibility with topup, and the extra slice erased afterwards
@@ -405,12 +423,14 @@ end_vol = str(int(end_vol[0:2])-1)
 print(end_vol)
 command = 'mrconvert ' + se_epi_mif + ' -coord 2 '+end_vol+' - | mrcat '+ se_epi_mif + ' - ' + se_epi_pad2_mif + ' -axis 2 -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 #Command:  mrconvert dwi.mif -coord 2 76 -clear dw_scheme - | mrcat dwi.mif - dwi_pad2.mif -axis 2
 dwi_pad2_mif = scratch_path + 'dwi_pad2.mif'
 command = 'mrconvert '+ dwi_mif + ' -coord 2 '+end_vol+'  -clear dw_scheme - | mrcat ' + dwi_mif + ' - ' + dwi_pad2_mif+ ' -axis 2 -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 #Command:  mrconvert se_epi_pad2.mif topup_in.nii -import_pe_table se_epi_manual_pe_scheme.txt -strides -1,+2,+3,+4 -export_pe_table topup_datain.txt
@@ -419,6 +439,7 @@ topup_datain_txt =  scratch_path + 'topup_datain.txt'
 se_epi_manual_pe_scheme_txt = root + 'se_epi_manual_pe_scheme.txt'
 command = 'mrconvert '+ se_epi_pad2_mif +' ' + topup_in_nii + ' -import_pe_table ' + se_epi_manual_pe_scheme_txt + ' -strides -1,+2,+3,+4 -export_pe_table '+ topup_datain_txt + ' -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 #Command:  topup --imain=topup_in.nii --datain=topup_datain.txt --out=field --fout=field_map.nii.gz --config=/usr/local/packages/fsl-6.0.3/etc/flirtsch/b02b0.cnf --verbose
@@ -426,6 +447,7 @@ field_map_nii_gz = scratch_path + 'field_map.nii'
 dwi_topup =  scratch_path + 'dwi_topup'
 command = 'topup --imain=' +topup_in_nii +' --datain=' + topup_datain_txt + ' --out=field --fout='+field_map_nii_gz + ' --config=$FSLDIR/src/topup/flirtsch/b02b0.cnf --out='+dwi_topup +' --verbose'
 print(command)
+os.system('echo '+command)
 os.system(command)
 #cannot be done here so echo and do in terminal
 
@@ -435,6 +457,7 @@ applytopup_indices_txt = scratch_path + 'applytopup_indices.txt'
 dwi_manual_pe_scheme_txt = root + 'dwi_manual_pe_scheme.txt'
 command = 'mrconvert '+ dwi_pad2_mif+ ' -import_pe_table '+ dwi_manual_pe_scheme_txt + ' - | mrinfo - -export_pe_eddy ' + applytopup_config_txt + ' '+ applytopup_indices_txt + ' -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 
@@ -444,6 +467,7 @@ dwi_pad2_pe_0_nii = scratch_path + 'dwi_pad2_pe_0.nii'
 dwi_pad2_pe_0_json = scratch_path + 'dwi_pad2_pe_0.json'
 command = 'mrconvert ' + dwi_pad2_mif + ' ' +dwi_pad2_pe_0_nii+' -strides -1,+2,+3,+4 -json_export ' + dwi_pad2_pe_0_json+' -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 
@@ -452,6 +476,7 @@ applytopup_config_txt = scratch_path + 'applytopup_config.txt'
 dwi_pad2_pe_0_applytopup_nii = scratch_path+ 'dwi_pad2_pe_0_applytopup.nii'
 command = 'applytopup --imain='+dwi_pad2_pe_0_nii+' --datain='+applytopup_config_txt+' --inindex=1 --topup='+ dwi_topup+' --out='+dwi_pad2_pe_0_applytopup_nii  +' --method=jac'
 print(command)
+os.system('echo '+command)
 os.system(command)
 #cannot be done here so echo and do in terminal
 
@@ -460,6 +485,7 @@ dwi_pad2_pe_0_applytopup_nii = dwi_pad2_pe_0_applytopup_nii +'.gz'
 dwi_pad2_pe_0_applytopup_mif = scratch_path + 'dwi_pad2_pe_0_applytopup.mif'
 command = 'mrconvert ' + dwi_pad2_pe_0_applytopup_nii+ ' ' + dwi_pad2_pe_0_applytopup_mif+  ' -json_import '+ dwi_pad2_pe_0_json +' -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 
@@ -467,6 +493,7 @@ os.system(command)
 eddy_mask_nii = scratch_path +'eddy_mask.nii'
 command = 'dwi2mask '+ dwi_pad2_pe_0_applytopup_mif + ' - | maskfilter - dilate - | mrconvert - ' + eddy_mask_nii +' -datatype float32 -strides -1,+2,+3 -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 
@@ -478,6 +505,7 @@ eddy_indices_txt =scratch_path + 'eddy_indices.txt'
 eddy_in_nii = scratch_path + 'eddy_in.nii'
 command = 'mrconvert '+ dwi_pad2_mif+ ' -import_pe_table ' +dwi_manual_pe_scheme_txt + ' ' + eddy_in_nii + ' -strides -1,+2,+3,+4 -export_grad_fsl '+ bvecs_eddy +  ' ' + bvals_eddy+ ' -export_pe_eddy ' +eddy_config_txt + " " + eddy_indices_txt + ' -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 
@@ -485,6 +513,7 @@ os.system(command)
 dwi_post_eddy = scratch_path + "dwi_post_eddy.nii"
 command = 'eddy_openmp --imain='+eddy_in_nii+ ' --mask='+eddy_mask_nii + ' --acqp='+eddy_config_txt + ' --index='+ eddy_indices_txt + ' --bvecs=' +bvecs_eddy+' --bvals='+ bvals_eddy+ ' --topup='+dwi_topup+' --slm=linear --data_is_shelled --out='+dwi_post_eddy + ' --verbose'
 print(command)
+os.system('echo '+command)
 os.system(command)
 ####does not exist on mac so switching to munin
 
@@ -495,12 +524,14 @@ result_mif = scratch_path + subj + '_coreg_result.mif'
 dwi_post_eddy_eddy_rotated_bvecs = scratch_path + 'dwi_post_eddy.nii.eddy_rotated_bvecs'
 command = 'mrconvert '+ dwi_post_eddy+ ' '+ result_mif+ ' -coord 2 0:'+end_vol+' -strides -1,-2,3,4 -fslgrad ' + dwi_post_eddy_eddy_rotated_bvecs + ' ' +bvals_eddy+ ' -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 
-#Command:  mrconvert result.mif ###/ADRC_mrtrix/temp/ADRC0001/ADRC0001_den_preproc.mif
+#Command:  mrconvert result.mif /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix/temp/ADRC0001/ADRC0001_den_preproc.mif
 command = 'mrconvert '+ result_mif+ ' '+ den_preproc_mif+ ' -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 
@@ -520,7 +551,7 @@ os.system(command)
 #preproc.inputs.args = "-force"
 #preproc.inputs.export_grad_mrtrix = False
 #preproc.inputs.export_grad_fsl = False
-#preproc.outputs.out_grad_mrtrix = "###/ADRC_mrtrix/temp/ADRC0001/gradgrad.b"
+#preproc.outputs.out_grad_mrtrix = "/mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix/temp/ADRC0001/gradgrad.b"
 #print(preproc.cmdline)
 #res = preproc.run()
 
@@ -538,20 +569,23 @@ den_unbiased_mif = subj_path+subj+'_den_preproc_unbiased.mif'
 bias_mif = subj_path+subj+'_bias.mif'
 command = 'dwibiascorrect ants '+den_preproc_mif+' '+den_unbiased_mif+ ' -scratch ' +subj_path +' -bias '+ bias_mif + ' -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 #cannot be done here go on on terminal after echoing and python it
 #den_unbiased_mif = den_preproc_mif  # bypassing
-#dwibiascorrect ants ###/ADRC_mrtrix_dwifsl/temp/ADRC0001/ADRC0001_den_preproc.mif ###/ADRC_mrtrix_dwifsl/temp/ADRC0001/ADRC0001_den_preproc_unbiased.mif  -bias ###/ADRC_mrtrix_dwifsl/temp/ADRC0001/ADRC0001__bias.mif -scratch ###/ADRC_mrtrix_dwifsl/temp/ADRC0001/ -force
+#dwibiascorrect ants /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix_dwifsl/temp/ADRC0001/ADRC0001_den_preproc.mif /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix_dwifsl/temp/ADRC0001/ADRC0001_den_preproc_unbiased.mif  -bias /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix_dwifsl/temp/ADRC0001/ADRC0001__bias.mif -scratch /mnt/munin2/Badea/Lab/mouse/ADRC_mrtrix_dwifsl/temp/ADRC0001/ -force
 
 
 dwi_mif = subj_path+subj+'_dwi.mif'
 command = 'dwiextract '+den_unbiased_mif+ ' - -no_bzero | mrmath - mean '+ dwi_mif+' -axis 3 -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 dwi_nii_gz = path_perm+subj+'_dwi.nii.gz'
 command = 'mrconvert ' +dwi_mif + ' '+ dwi_nii_gz + ' -force' 
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 coreg_bvecs = path_perm+subj+'_coreg_bvecs.txt'
@@ -559,6 +593,7 @@ coreg_bvals = path_perm+subj+'_coreg_bvals.txt'
 coreg_nii_gz = path_perm+subj+'_coreg.nii.gz'
 command = 'mrconvert ' +den_unbiased_mif + ' '+ coreg_nii_gz + ' -export_grad_fsl '+ coreg_bvecs + ' ' +coreg_bvals + ' -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 
@@ -568,12 +603,14 @@ os.system(command)
 mask_mif  =  path_perm+subj+'_mask.mif'
 command = 'dwi2mask '+den_unbiased_mif+  ' '+ mask_mif + ' -force'
 print(command)
+os.system('echo '+command)
 os.system(command) 
 
 #os.system('mrview '+fa_mif + ' -overlay.load '+ mask_mif )  
 mask_mrtrix_nii = path_perm +subj+'_mask.nii.gz'
 command = 'mrconvert ' +mask_mif+ ' '+mask_mrtrix_nii + ' -force' 
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 
@@ -628,6 +665,7 @@ csf_txt = subj_path+subj+'_csf.txt'
 voxels_mif =  subj_path+subj+'_voxels.mif'+index_gz
 command = 'dwi2response dhollander '+den_unbiased_mif+ ' ' +wm_txt+ ' ' + gm_txt + ' ' + csf_txt + ' -voxels ' + voxels_mif+' -mask '+ mask_mif + ' -scratch ' +subj_path + ' -fslgrad ' +bvec_path + ' '+ bval_path   +'  -force' 
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 #not on spider but on terminal
@@ -645,6 +683,7 @@ csffod_mif = subj_path+subj+'_csffod.mif'+index_gz
 #os.system('dwi2fod msmt_csd ' +den_unbiased_mif+ ' -mask '+mask_mif+ ' ' +wm_txt+ ' ' + wmfod_mif+ ' ' +gm_txt+ ' ' + gmfod_mif+ ' ' +csf_txt+ ' ' + csffod_mif + ' -force' )
 command = 'dwi2fod msmt_csd ' +den_unbiased_mif+ ' -mask '+mask_mif+ ' ' +wm_txt+ ' ' + wmfod_mif+ ' ' +gm_txt+ ' ' + gmfod_mif+ ' ' +csf_txt+ ' ' + csffod_mif + ' -force' 
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 #combine to single image to view them
@@ -652,6 +691,7 @@ os.system(command)
 vf_mif =   subj_path+subj+'_vf.mif' 
 command = 'mrconvert -coord 3 0 ' +wmfod_mif+ ' -| mrcat '+csffod_mif+ ' ' +gmfod_mif+ ' - ' + vf_mif+' -force' 
 print(command)
+os.system('echo '+command)
 os.system(command)
 #os.system('mrconvert -coord 3 0 ' +wmfod_mif+ ' -| mrcat ' +gmfod_mif+ ' - ' + vf_mif+' -force' ) # without csf
 
@@ -664,6 +704,7 @@ gmfod_norm_mif = subj_path+subj+'_gmfod_norm.mif'
 csffod_norm_mif = subj_path+subj+'_csffod_norm.mif'  
 command = 'mtnormalise ' +wmfod_mif+ ' '+wmfod_norm_mif+ ' ' +gmfod_mif+ ' '+gmfod_norm_mif + ' ' +csffod_mif+ ' '+csffod_norm_mif +' -mask ' + mask_mif + '  -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 
@@ -682,7 +723,7 @@ md_mif = path_perm+subj+'_md.mif'+index_gz
 ad_mif = path_perm+subj+'_ad.mif'+index_gz
 rd_mif = path_perm+subj+'_rd.mif'+index_gz
 
-#output_denoise = '###/Desktop/Feb23/mrtrix_pipeline/temp/N59141/N59141_subjspace_dwi_copy.mif.gz'#
+#output_denoise = '/Users/ali/Desktop/Feb23/mrtrix_pipeline/temp/N59141/N59141_subjspace_dwi_copy.mif.gz'#
 
 
 
@@ -702,10 +743,22 @@ else:
 fa_nii = path_perm+subj+'_fa.nii'+index_gz
 command = 'mrconvert ' +fa_mif+ ' '+fa_nii + ' -force' 
 print(command)
+os.system('echo '+command)
 os.system(command) 
 
 
 #os.system('mrinfo '+den_unbiased_mif) #info
+
+
+
+T1_orig_res = subj_path+subj+'_T1_res.nii.gz'
+#os.system( 'mrgrid '+ T1_orig + ' regrid -voxel 1.5 '+ T1_orig_res +' -force')
+#os.system( 'mrgrid '+ T1_orig_res + ' pad -all_axes -axis 0 0,1 -axis 1 0,1 '+ T1_orig_res +' -force')
+T1_orig = T1_orig_res
+
+
+
+
 
 
 
@@ -809,6 +862,7 @@ tracks_10M_tck  = subj_path +subj+'_tracks_10M.tck'
 #seconds1 = time.time()
 command ='tckgen -backtrack -seed_image '+ gmwmSeed_coreg_mif + ' -maxlength 250 -cutoff 0.1 -select 10000000 ' + wmfod_norm_mif + ' ' + tracks_10M_tck + ' -force'
 print(command)
+os.system('echo '+command)
 os.system( command )
 
 
@@ -823,6 +877,7 @@ smallerTracks = path_perm+subj+'_smallerTracks2mill.tck'
 
 command = 'tckedit '+ tracks_10M_tck + ' -number 2000000 ' + smallerTracks + ' -force'
 print(command)
+os.system('echo '+command)
 os.system(command)
 
 #os.system('tckedit '+ tracks_10M_tck + ' -number 2000000 -minlength 2 ' + smallerTracks + ' -force')
@@ -832,6 +887,7 @@ os.system(command)
 
 
 
+shutil.rmtree(subj_path)
 
 
 
@@ -857,7 +913,7 @@ os.system('tcksift2  -out_mu '+ sift_mu_txt + ' -out_coeffs ' + sift_coeffs_txt 
 
 #Converting the labels:
 #parcels_mif = subj_path+subj+'_parcels.mif'
-#os.system('labelconvert '+ ' ###/sub-CON02_recon3/mri/aparc+aseg.mgz' + ' /Applications/freesurfer/7.3.2/FreeSurferColorLUT.txt ' +  '###/opt/anaconda3/pkgs/mrtrix3-3.0.3-ha664bf1_0/share/mrtrix3/labelconvert/fs_default.txt '+ parcels_mif)
+#os.system('labelconvert '+ ' /Users/ali/sub-CON02_recon3/mri/aparc+aseg.mgz' + ' /Applications/freesurfer/7.3.2/FreeSurferColorLUT.txt ' +  '/Users/ali/opt/anaconda3/pkgs/mrtrix3-3.0.3-ha664bf1_0/share/mrtrix3/labelconvert/fs_default.txt '+ parcels_mif)
 
 
 
@@ -931,7 +987,7 @@ assignments_parcels_csv3 = path_perm +subj+'_assignments_con_sift.csv'
 os.system('tck2connectome -symmetric -zero_diagonal -tck_weights_in '+ sift_1M_txt+ ' '+ smallerTracks + ' '+ parcels_mif + ' '+ parcels_csv_3 + ' -out_assignment ' + assignments_parcels_csv3 + ' -force')
 '''
 
-shutil.rmtree(subj_path)
+#shutil.rmtree(subj_path)
 
 
 #scale_invnodevol scale connectome by the inverse of size of each node
